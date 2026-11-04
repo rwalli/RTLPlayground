@@ -40,7 +40,7 @@ static __code const uint8_t ntp_mdays[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30
 static __code const char ntp_default_server[] = "pool.ntp.org";
 
 
-static uint32_t ntp_uptime(void) __reentrant
+uint32_t ntp_uptime(void) __banked __reentrant
 {
 	reg_read_m(RTL837X_REG_SEC_COUNTER);
 	((__xdata uint8_t *)&ntp_now)[0] = sfr_data[3];

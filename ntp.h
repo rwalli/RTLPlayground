@@ -30,6 +30,7 @@ struct ntp_state {
 
 extern __xdata struct ntp_state ntp_state;
 
+uint32_t ntp_uptime(void) __banked __reentrant;
 void ntp_init(void) __banked;
 void ntp_start(void) __banked;
 void ntp_stop(void) __banked;
