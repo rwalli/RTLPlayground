@@ -67,6 +67,7 @@ var LANG = {
         i_fw: "Firmware",
         i_built: "Built",
         i_hw: "Hardware",
+        i_up: "Uptime",
         i_temp: "Temperature",
         i_flash: "Flash",
         i_syslog: "Syslog",
@@ -447,6 +448,7 @@ var LANG = {
         i_fw: "ファームウェア",
         i_built: "ビルド日",
         i_hw: "ハードウェア",
+        i_up: "稼働時間",
         i_temp: "温度",
         i_flash: "フラッシュ",
         i_syslog: "Syslog",
@@ -752,6 +754,7 @@ var LANG = {
         i_fw: "固件",
         i_built: "构建日期",
         i_hw: "硬件",
+        i_up: "运行时间",
         i_temp: "温度",
         i_flash: "Flash",
         i_syslog: "Syslog",
@@ -1131,6 +1134,7 @@ var LANG = {
         i_fw: "Firmware",
         i_built: "Compilado",
         i_hw: "Hardware",
+        i_up: "Tiempo activo",
         i_flash: "Flash",
         i_syslog: "Syslog",
         p_state: "Estado",
@@ -1515,6 +1519,7 @@ var LANG = {
         i_fw: "Micro logiciel",
         i_built: "Compilé le",
         i_hw: "Matériel",
+        i_up: "Temps de fonctionnement",
         i_temp: "Température",
         i_flash: "Taille Flash",
         i_syslog: "Journal système",
@@ -1860,6 +1865,7 @@ var LANG = {
         i_fw: "Firmware",
         i_built: "Erstellt",
         i_hw: "Hardware",
+        i_up: "Betriebszeit",
         i_temp: "Temperatur",
         i_flash: "Flash",
         i_syslog: "Syslog",
@@ -2860,6 +2866,29 @@ function portDetail(i) {
     S.detail = i;
 }
 
+// Uptime from the seconds counter (reg 0x06f4)
+var upText = null,
+    upBusy = false;
+
+function upLoad() {
+    if (upBusy) return Promise.resolve();
+    upBusy = true;
+    return api("/cmd", {
+        method: "POST",
+        body: "regget 06f4"
+    }).then(function(r) {
+        var x = r.body.match(/VAL: 0x([0-9a-fA-F]{8})/),
+            e = $("i-uptime");
+        if (!x) return;
+        var s = parseInt(x[1], 16);
+        upText = (s / 86400 | 0) + "d " + new Date(s % 86400 * 1000).toISOString().slice(11, 19);
+        if (e) e.textContent = upText;
+        else renderInfo();
+    }).catch(function() {}).then(function() {
+        upBusy = false
+    });
+}
+
 function renderInfo() {
     var m = [
         ["i_host", "hostname"],
@@ -2870,12 +2899,14 @@ function renderInfo() {
         ["i_fw", "sw_ver"],
         ["i_built", "build_date"],
         ["i_hw", "hw_ver"],
+        ["i_up", "uptime"],
         ["i_temp", "chip_temp"],
         ["i_flash", "flash_size"],
         ["i_syslog", "syslog_server"]
     ];
     var tb = $("sysinfo");
     tb.innerHTML = "";
+    if (upText != null) S.info.uptime = upText;
     m.forEach(function(r) {
         var v = S.info[r[1]];
         if (v == null || v === "") return;
@@ -2884,6 +2915,7 @@ function renderInfo() {
             text: t(r[0])
         }), h("td", {
             class: "mono",
+            id: "i-" + r[1],
             text: String(v)
         })]));
     });
@@ -2927,9 +2959,12 @@ function dashStatus() {
 }
 tabHooks.dash = {
     enter: function() {
-        pollInfo().catch(function() {})
+        pollInfo().then(upLoad).catch(function() {})
     },
-    status: dashStatus,
+    status: function() {
+        dashStatus();
+        upLoad()
+    },
 };
 
 var SPEEDS = [

@@ -20,6 +20,7 @@
   - Replace the multi-page UI with a themed single-page app: light, dark and Selenized themes following the browser by default,
     English, Japanese and Chinese, save to flash merges the command log into the startup config and verifies the write,
     firmware images are checked in the browser before upload. #429
+  - Dashboard: show the uptime.
 
 ## Changed
 
