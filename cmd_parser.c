@@ -1856,6 +1856,80 @@ void print_sw_version(void) __banked {
 }
 
 
+static uint32_t reload_left(void)
+{
+	uint32_t now = ntp_uptime();
+
+	return now >= reload_at ? 0 : reload_at - now;
+}
+
+
+// Once a second while a reload is pending
+void reload_tick(void) __banked
+{
+	uint32_t left = reload_left();
+
+	if (!left) {
+		print_string("\nRELOAD\n\n");
+		reset_chip();
+	}
+	if ((left <= 60 && reload_warned < 2) || (left <= 300 && !reload_warned)) {
+		reload_warned = left <= 60 ? 2 : 1;
+		print_string("\nReload in ");
+		itoa(reload_warned == 2 ? 1 : 5);
+		print_string(" minute(s)\n");
+	}
+}
+
+
+// reload [in <minutes> | cancel]
+static void parse_reload(void)
+{
+	if (cmd_words_len == 1) {
+		if (!reload_at) {
+			print_string("No reload scheduled\n");
+			return;
+		}
+		__xdata uint32_t left = reload_left();
+		uint8_t i, s = 0;
+		// left /= 60, s = left % 60, without SDCC's long division
+		for (i = 0; i < 32; i++) {
+			s = (s << 1) | (((uint8_t *)&left)[3] >> 7);
+			left <<= 1;
+			if (s >= 60) {
+				s -= 60;
+				left |= 1;
+			}
+		}
+		print_string("Reload in ");
+		itoa_short((uint16_t)left);
+		write_char(':');
+		write_char('0' + s / 10);
+		write_char('0' + s % 10);
+		print_string(" (mm:ss)\n");
+		return;
+	}
+	if (cmd_words_len == 2 && cmd_compare(1, "cancel")) {
+		if (reload_at) {
+			reload_at = 0;
+			print_string("Reload cancelled\n");
+		} else {
+			print_string("No reload scheduled\n");
+		}
+		return;
+	}
+	if (cmd_words_len == 3 && cmd_compare(1, "in")
+	    && atoi_short(cmd_words_b[2]) && atoi_results_short) {
+		reload_at = ntp_uptime() + (uint32_t)atoi_results_short * 60;
+		reload_warned = 0;
+		print_string("Reload scheduled in ");
+		itoa_short(atoi_results_short);
+		print_string(" minute(s)\n");
+		return;
+	}
+	cmd_error("reload [in <minutes> | cancel]\n");
+}
+
 // Identify command
 void cmd_parser(void) __banked
 {
@@ -1878,6 +1952,8 @@ void cmd_parser(void) __banked
 		if (cmd_compare(0, "reset")) {
 			print_string("\nRESET\n\n");
 			reset_chip();
+		} else if (cmd_compare(0, "reload")) {
+			parse_reload();
 		} else if (cmd_compare(0, "factory-reset")) {
 			print_string("\nFACTORY RESET\n\n");
 			flash_default_config();
