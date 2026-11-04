@@ -95,6 +95,8 @@ volatile __xdata uint32_t ticks;
 volatile __xdata uint8_t tick_counter;
 volatile __xdata uint8_t sec_pending;
 volatile __xdata uint32_t time_sec;
+__xdata uint32_t reload_at;	// 0: no reload
+__xdata uint8_t reload_warned;
 
 __xdata uint8_t arp_age_secs;
 extern __xdata struct dhcp_state dhcp_state;
@@ -1159,6 +1161,9 @@ static void handle_tick(void)
 		sfr_data[3] = *(time_ptr + 0);
 		reg_write_m(RTL837X_REG_SEC_COUNTER);
 
+		if (reload_at)
+			reload_tick();
+
 		// Check for button presses once a second
 		handle_button();
 		link_irq = 1;
@@ -1579,6 +1584,7 @@ void main(void)
 
 	button_last = 0;
 	button_sec_counter_last = 0;
+	reload_at = 0;
 
 	machine_detected.isRTL8373 = 0;
 	machine_detected.isN = 0;
