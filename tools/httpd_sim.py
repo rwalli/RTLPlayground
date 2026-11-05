@@ -61,6 +61,7 @@ rx_g = [0] * PORTS
 tx_b = [0] * PORTS
 rx_b = [0] * PORTS
 last_called = int(time.time())
+start_time = time.time()
 
 sessions = set()
 uploaded_config = None
@@ -316,6 +317,7 @@ class Handler(SimpleHTTPRequestHandler):
             "pvid": self._parse_pvid,
             "dns": self._parse_dns,
             "ntp": self._parse_ntp,
+            "regget": self._parse_regget,
         }
 
     def remove_vlan(self, id):
@@ -371,6 +373,12 @@ class Handler(SimpleHTTPRequestHandler):
     def _parse_ntp(self, pieces):
         global state
         return b"NTP off, server pool.ntp.org, address 0.0.0.0, interval 60 min, timezone +00:00, dst off\nTime not synchronised"
+
+    def _parse_regget(self, pieces):
+        # 0x06f4 is the seconds counter (uptime)
+        reg = int(pieces[1], 16) if len(pieces) > 1 else 0
+        val = int(time.time() - start_time) if reg == 0x06f4 else 0
+        return b"REGGET: 0x%04x: VAL: 0x%08x" % (reg, val)
 
     def _parse_dns(self,pieces):
         global state
