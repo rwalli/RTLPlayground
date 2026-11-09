@@ -660,6 +660,9 @@ void parse_vlan(void)
 		}
 
 		uint8_t w = 2;
+		// "name <x>" allows names clashing with keywords (d, mgmt)
+		if (cmd_compare(2, "name") && cmd_words_len > 3 && isletter(cmd_buffer[cmd_words_b[3]]))
+			w = 3;
 		uint8_t pos = cmd_words_b[w];
 		if (cmd_words_len > w && isletter(cmd_buffer[pos])) {
 			uint8_t i = 0;

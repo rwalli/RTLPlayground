@@ -210,7 +210,7 @@ var LANG = {
         v_del_q: "Delete VLAN {n}?",
         v_del_d: "Ports keep their PVID until reassigned.",
         v_vid_err: "Enter a VLAN ID (1-4094)",
-        v_name_err: "Name must start with a letter (letters, digits, _) and cannot be just 'd' or 'mgmt'",
+        v_name_err: "Name must start with a letter (letters, digits, _)",
         v_loaded: "Loaded VLAN {n}",
         v_notfound: "VLAN {n} not found (a new one can still be created)",
         v_nomember: "Select at least one member port (or delete the VLAN instead)",
@@ -2389,7 +2389,7 @@ var CONF_CMDS = [
     /^ntp\s+dst\s+(off|eu|us)$/,
     /^passwd\s+\S+$/, /^hostname\s+\S{1,23}$/,
     /^vlan\s+\d+\s+(d|mgmt)$/m,
-    /^vlan\s+\d+(\s+[a-zA-Z]\w*)?(\s+\d+t?)*$/m,
+    /^vlan\s+\d+(\s+name)?(\s+[a-zA-Z]\w*)?(\s+\d+t?)*$/m,
     /^pvid\s+\d+\s+\d+$/m,
     /^ingress(\s+\d+[tua])+$/, /^ingress\s+[tua]$/,
     /^port\s+\d+\s+(10m|100m|1g|2g5|5g|10g|auto|on|off)(\s+(half|full))?$/,
@@ -3835,7 +3835,7 @@ function vlanLoad(vid) {
 }
 
 function vlan2str(i, n, t, u) {
-    return ("vlan " + i + (n ? " " + n : "") + " " + t.map((x) => x + "t").concat(u).join(" ")).trim();
+    return ("vlan " + i + (n ? " name " + n : "") + " " + t.map((x) => x + "t").concat(u).join(" ")).trim();
 }
 
 function pvidcmd(i, p) {
@@ -3965,7 +3965,7 @@ $("vlan_add").addEventListener("click", function() {
 });
 
 function validVlanName(n) {
-    if (n && (!/^[a-zA-Z]\w*$/.test(n) || n == "d" || n == "mgmt")) {
+    if (n && !/^[a-zA-Z]\w*$/.test(n)) {
         toast(t("v_name_err"), "err");
         return false;
     }
@@ -3982,7 +3982,7 @@ function addVlan() {
     }
     var name = $("nvlname").value;
     if (!validVlanName(name)) return false;
-    var cmd = "vlan " + vid + (name ? " " + name : "");
+    var cmd = "vlan " + vid + (name ? " name " + name : "");
     postCmd(cmd).then(function() {
         closeModal();
         vlanRefresh().then(function() {

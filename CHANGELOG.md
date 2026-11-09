@@ -7,6 +7,7 @@
 - CLI
   - `reload in <minutes>`, `reload cancel` and `reload`: scheduled reboot.
     Footprint: BANK2 +833, CSEG +39, XSEG +9 bytes.
+  - `vlan <id> name <name> [ports]`: VLAN names may be `d` or `mgmt`. Web UI uses it.
 
 - Devices
   - Support the hongyavision HYWS-SGT0204S (PCB marking `2G5F4_10G2_V1.01`), an

@@ -73,6 +73,9 @@ vlan <VLAN-ID> p[t]...
   create or set vlan with given ID and the list of ports as members, a `t`
   behind a port defines the port as a tagged member.
 
+vlan <VLAN-ID> name <name> p[t]...
+  as above, also sets the VLAN name (must start with a letter).
+
 vlan <VLAN-ID> d
   deletes the VLAN
 
