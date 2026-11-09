@@ -4,6 +4,10 @@
 
 ## Added
 
+- CLI
+  - `reload in <minutes>`, `reload cancel` and `reload`: scheduled reboot.
+    Footprint: BANK2 +833, CSEG +39, XSEG +9 bytes.
+
 - Devices
   - Support the hongyavision HYWS-SGT0204S (PCB marking `2G5F4_10G2_V1.01`), an
     RTL8372 based 4x2.5G + 2xSFP+ unmanaged switch with a 512 KB Bright Moon

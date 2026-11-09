@@ -44,5 +44,6 @@ void print_ip(__xdata uint8_t *ptr) __banked;
 void print_mac(__xdata uint8_t *ptr) __banked;
 void print_sw_version(void) __banked;
 void clear_command_history(void) __banked;
+void reload_tick(void) __banked;
 
 #endif
