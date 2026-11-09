@@ -338,6 +338,9 @@ class Handler(SimpleHTTPRequestHandler):
             elif pieces[2] == "mgmt":
                 state["mgmt_vlan"] = vid
                 return
+            elif pieces[2] == "name" and len(pieces) > 3 and pieces[3][0].isalpha():
+                name = pieces[3]
+                startIndex=4
             elif not re.match('^[0-9]+$', pieces[2]):
                 name = pieces[2]
                 startIndex=3

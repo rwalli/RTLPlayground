@@ -5285,7 +5285,7 @@ function mergeConf(base, texts) {
                     var key = line.match(rx)[0];
                     conf = conf.filter(function(item) {
                         return !(item === key || (item.indexOf(key + " ") === 0 &&
-                            !/\smgmt$/.test(item) && item.indexOf(key + " name ") !== 0 && item.indexOf(key + " lldp ") !== 0));
+                            !/^vlan \d+ mgmt$/.test(item) && !/^port \d+ (name|lldp) /.test(item)));
                     });
                     break;
                 }
