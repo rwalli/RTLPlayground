@@ -1855,6 +1855,28 @@ void print_sw_version(void) __banked {
 	write_char('\n');
 }
 
+// reload [in <minutes> | cancel]
+static void parse_reload(void)
+{
+	if (cmd_words_len == 3 && cmd_compare(1, "in")
+	    && atoi_short(cmd_words_b[2]) && atoi_results_short
+	    && atoi_results_short <= 1092) {	// 65535 s
+		reload_sec = atoi_results_short * 60;
+		reload_pending = 1;
+	} else if (cmd_words_len == 2 && cmd_compare(1, "cancel")) {
+		reload_pending = 0;
+	} else if (cmd_words_len != 1) {
+		cmd_error("reload [in <minutes> | cancel]\n");
+		return;
+	}
+	if (!reload_pending) {
+		print_string("No reload scheduled\n");
+		return;
+	}
+	print_string("Reload in ");
+	itoa_short((reload_sec - 1) / 60 + 1);	// round up
+	print_string(" minute(s)\n");
+}
 
 // Identify command
 void cmd_parser(void) __banked
@@ -1878,6 +1900,8 @@ void cmd_parser(void) __banked
 		if (cmd_compare(0, "reset")) {
 			print_string("\nRESET\n\n");
 			reset_chip();
+		} else if (cmd_compare(0, "reload")) {
+			parse_reload();
 		} else if (cmd_compare(0, "factory-reset")) {
 			print_string("\nFACTORY RESET\n\n");
 			flash_default_config();

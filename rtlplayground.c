@@ -92,6 +92,7 @@ __xdata struct uip_eth_addr uip_ethaddr;
 
 volatile __xdata uint32_t ticks;
 __xdata uint8_t arp_age_secs;
+__xdata uint16_t reload_sec;
 extern __xdata struct dhcp_state dhcp_state;
 
 #define STP_CATCH_UP 8
@@ -152,6 +153,7 @@ __bit __at(0x03) cmd_available;
 __xdata bool button_last;
 __xdata uint8_t button_sec_counter_last;
 volatile __bit tx_buf_empty;
+__bit reload_pending;
 
 
 struct eth_in {
@@ -1177,6 +1179,11 @@ static void handle_tick(void)
 		reg_write_m(RTL837X_REG_SEC_COUNTER);
 		reg_read_m(RTL837X_REG_SEC_COUNTER);
 
+		if (reload_pending && !--reload_sec) {
+			print_string("\nRELOAD\n\n");
+			reset_chip();
+		}
+
 		// Check for button presses once a second
 		handle_button();
 		link_irq = 1;
@@ -1600,6 +1607,7 @@ void main(void)
 
 	button_last = 0;
 	button_sec_counter_last = 0;
+	reload_pending = 0;
 
 	machine_detected.isRTL8373 = 0;
 	machine_detected.isN = 0;
