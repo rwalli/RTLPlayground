@@ -861,7 +861,10 @@ void httpd_appcall(void)
 		dbg_string("Connected...\n");
 		s->tstate = TSTATE_NONE;
 		s->fw_reset_pending = 0; // explicitly initialize reused XDATA appstate
-	} else if (uip_closed()) {
+		if (!uip_newdata())
+			return;
+	}
+	if (uip_closed()) {
 		dbg_string("Connection closed\n");
 		s->tstate = TSTATE_CLOSED;
 		if (s->fw_reset_pending && uip_acked())
